@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[9]:
 
 
 import tkinter as tk
@@ -32,6 +32,8 @@ mp_pose = mp.solutions.pose
 
 # loading saved model
 final_model = load_model('Final Prediction Model 2 Sep 2021')
+
+
 
 # function for predicting if ball will curve
 def will_curve(dat):
@@ -157,7 +159,8 @@ def predictor():
     speed = 0
     final_speed_list = [0]
     max_speed = 0
-
+    global avgSpeed
+    
     # global variable for angles
     angle_r_knee = 0
     angle_l_knee = 0
@@ -170,6 +173,10 @@ def predictor():
     
     # global variable for printing confidence of prediction
     global confidence
+    
+    # global variable for printing curl
+    global CURLorNOT
+    
 
     # global variable for ret
     # ret is a variable from openCV to check if video is at last frame
@@ -518,6 +525,7 @@ def predictor():
                         speed_list.append(speed)
                         final_speed_list = [x for x in speed_list if x < np.mean(speed_list) + 3*np.std(speed_list)]
                         max_speed = max(final_speed_list, default=0)
+                        avgSpeed = "{:.2f}".format(np.average(final_speed_list))
 
                         xp, yp = x, y
                         final_y = y
@@ -734,12 +742,14 @@ def predictor():
 
             if prediction[0] == 1:
                 # Printing prediction on screen
+                CURLorNOT = "CURL"
                 cv2.putText(image, 'Curl', 
                         (10,200),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA
                        )
             elif prediction[0] == 0:
                 # Printing prediction on screen
+                CURLorNOT = "NO CURL"
                 cv2.putText(image, 'No Curl', 
                         (10,200),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA
@@ -791,6 +801,8 @@ def showResults():
     global release3
     global flight3
     global confidence
+    global avgSpeed
+    global CURLorNOT
     
     # defining image location
     charge1 = Image.open("../images/angles_charge.jpg")
@@ -825,8 +837,14 @@ def showResults():
     # display confidence of prediction
     print("confidence", confidence)
     
-    resultLabel = tk.Label(window, text = "Prediction Confidence = " + str(confidence), font = ("Arial", 10), bg="white")
-    resultLabel.grid(row = 5, column = 2)
+    confidenceLabel = tk.Label(window, text = "Prediction Confidence = " + str(confidence) + "%", font = ("Arial", 10), bg="white")
+    confidenceLabel.grid(row = 5, column = 2)
+    
+    avespeedLabel = tk.Label(window, text = "Average Speed = " + str(avgSpeed) + " m/s", font = ("Arial", 10), bg="white")
+    avespeedLabel.grid(row = 5, column = 0)
+    
+    resultLabel = tk.Label(window, text = "Result = " + CURLorNOT, font = ("Arial", 10), bg="white")
+    resultLabel.grid(row = 5, column = 1)
 
 # results button
 b3 = tk.Button(window, text = "Show Results", font = ("Arial",10), bg = 'white', fg = 'black', command = showResults)
